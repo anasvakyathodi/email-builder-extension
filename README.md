@@ -16,10 +16,77 @@ A Chrome extension to easily migrate email templates and campaigns from producti
 ### Local Development Installation
 
 1. Download or clone this repository
+
+   ```bash
+   git clone https://github.com/anasvakyathodi/email-builder-extension.git
+   cd email-builder-extension
+   ```
+
 2. Open Chrome and navigate to `chrome://extensions/`
+
 3. Enable "Developer mode" by toggling the switch in the top-right corner
+
 4. Click "Load unpacked" and select the extension directory
+
 5. The extension should now be installed and visible in your extensions list
+
+### Project Structure
+
+```
+email-builder-extension/
+├── manifest.json         # Chrome extension configuration
+├── popup.html            # Extension popup interface
+├── popup.js              # Popup functionality
+├── background.js         # Background service worker for API calls
+├── content.js            # Content script for page interaction
+├── icons/                # Extension icons
+│   ├── icon16.png
+│   ├── icon32.png
+│   ├── icon48.png
+│   └── icon128.png
+└── README.md             # Documentation
+```
+
+### Key Configuration (manifest.json)
+
+```json
+{
+  "manifest_version": 3,
+  "name": "Email Builder Template Migrator",
+  "description": "Migrate email templates and campaigns from production to staging",
+  "version": "1.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://app.gohighlevel.com/*",
+        "https://email-builder-prod.web.app/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://app.gohighlevel.com/*",
+    "https://email-builder-prod.web.app/*",
+    "https://services.leadconnectorhq.com/*",
+    "https://backend.leadconnectorhq.com/*",
+    "http://staging.services.leadconnectorhq.internal/*"
+  ]
+}
+```
 
 ## Usage
 
