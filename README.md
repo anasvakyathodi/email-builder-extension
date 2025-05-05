@@ -43,6 +43,97 @@ A Chrome extension to easily migrate email templates and campaigns from producti
    - Update the staging template with the production data
    - Display the new template ID upon successful completion
 
+## Code Examples
+
+### Extracting Data from the Production Environment
+
+```javascript
+// Fetch data from production
+async function fetchProductionData(
+  locationId,
+  entityId,
+  builderType,
+  authToken
+) {
+  try {
+    // Try multiple endpoints with different URL formats
+    let response = await tryMultipleEndpoints(
+      [
+        `https://services.leadconnectorhq.com/emails/builder/data/${locationId}/${entityId}?isInternal=true`,
+        `https://backend.leadconnectorhq.com/emails/builder/data/${locationId}/${entityId}?isInternal=true`,
+        // Additional endpoints...
+      ],
+      locationId,
+      authToken
+    );
+
+    if (response) {
+      return response;
+    }
+
+    throw new Error("Failed to fetch production data: All endpoints failed");
+  } catch (error) {
+    console.error("Error fetching production data:", error);
+    throw error;
+  }
+}
+```
+
+### Creating a New Template in Staging
+
+```javascript
+// Create new template in staging
+async function createStagingEntity(locationId) {
+  const apiUrl =
+    "http://staging.services.leadconnectorhq.internal/emails/builder";
+  const requestBody = {
+    locationId: locationId,
+    type: "blank",
+    updatedBy: "7Xw0wYJ99ufWXkfSrEQ0",
+    title: "Migrated Template",
+    isPlainText: false,
+  };
+
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: getStandardStagingHeaders(locationId),
+    body: JSON.stringify(requestBody),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create template in staging: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return { id: result.id || result.redirect };
+}
+```
+
+### Handling Different Data Formats
+
+```javascript
+// Handle different data formats in production response
+if (prodData.editorData) {
+  console.log("Using editorData format from production");
+  dndData = prodData.editorData;
+  // Fetch HTML content from previewUrl if available
+  if (prodData.previewUrl) {
+    try {
+      const htmlResponse = await fetch(prodData.previewUrl);
+      if (htmlResponse.ok) {
+        htmlContent = await htmlResponse.text();
+      }
+    } catch (error) {
+      console.warn("Could not fetch HTML from previewUrl:", error);
+    }
+  }
+} else if (prodData.dnd) {
+  console.log("Using dnd format from production");
+  dndData = prodData.dnd;
+  htmlContent = prodData.html || "";
+}
+```
+
 ## Technical Details
 
 - **Content Script**: Extracts URL information from the current tab
